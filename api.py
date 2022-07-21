@@ -6,6 +6,7 @@ import logging
 
 from pprint import pprint
 from flask import request, jsonify, abort
+from flask_cors import CORS, cross_origin
 
 from hubspot import Hubspot
 from airtable import Airtable
@@ -14,6 +15,7 @@ from slack import Slack
 from config import BESTRONG_API_TOKEN
 
 app = flask.Flask(__name__)
+CORS(app)
 app.config["DEBUG"] = True
 logging.basicConfig(filename='/var/log/apache2/bestrong_wsgi_api_logs.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
 
@@ -40,11 +42,18 @@ def api_error(e):
 
 
 @app.route('/', methods=['GET'])
+@cross_origin(origins='https://airtable.com')
 def home():
     authenticate(request)
     logging.info("hey")
     return '''<h1>BeStrong API</h1>
 <p>Because we can.</p>'''
+
+
+
+
+
+
 
 
 
@@ -118,7 +127,45 @@ def lead_flow():
 
 
 
-# SYNC LEADSTATUS
+
+
+
+
+
+
+
+# SYNC AIRTABLE CHANES TO HS AND AC
+@app.route('/resources/sync_airtable_changes', methods=['POST'])
+@cross_origin(origins='https://airtable.com/developers/scripting')
+def sync_data_from_airtable():
+    authenticate(request)
+
+    data = json.loads(request.data) if request.data else False
+    
+    if data and 'hs_id' in data and 'ac_id' in data:
+        ac = ActiveCampaign()
+        hs = Hubspot()
+
+        ac_response = ac.updateContact(str(data['ac_id']), data, use_standard_values=False)
+        hs_response = hs.updateContact(str(data['hs_id']), data)
+
+        if ac_response and hs_response:
+            return json.dumps("Success.")
+
+    return abort(400, description="Something went wrong.")
+
+
+
+
+
+
+
+
+
+
+
+
+# SYNC LEADSTATUS OLD
 @app.route('/resources/sync_leadstatus', methods=['POST'])
 def sync_leadstatus():
     authenticate(request)
@@ -164,6 +211,14 @@ def sync_leadstatus():
 
 
 
+
+
+
+
+
+
+
+
 """
 HUBSPOT
 """
@@ -191,6 +246,12 @@ def hs_contact():
             return hs.createContact(data)
 
         return "Missing data. Couldn't create contact."
+
+
+
+
+
+
 
 
 
@@ -227,6 +288,16 @@ def airtable_record():
             return at.createRecord(request.args.get('table'), data)
 
         return "Missing data. Couldn't create Airtable record."
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -274,6 +345,16 @@ def airtable_appointment():
             return at.createRecord('Appointments', data)
 
         return "Missing data. Couldn't create Airtable record."
+
+
+
+
+
+
+
+
+
+
 
 
 
