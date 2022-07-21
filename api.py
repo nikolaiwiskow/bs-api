@@ -11,12 +11,13 @@ from hubspot import Hubspot
 from airtable import Airtable
 from active_campaign import ActiveCampaign
 from slack import Slack
+from config import BESTRONG_API_TOKEN
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
-logging.basicConfig(filename='/var/www/bestrong_api/api_logs.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
+logging.basicConfig(filename='api_logs.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
 
-API_TOKEN = "qeriasdfweriaWERoiuasdfk"
+
 
 
 def authenticate(request):
@@ -25,7 +26,7 @@ def authenticate(request):
     """
     api_token = request.args.get("api_token") if request.args.get("api_token") else False
 
-    if not api_token:
+    if not api_token or api_token != BESTRONG_API_TOKEN:
         abort(403)
 
 
@@ -87,6 +88,7 @@ def lead_flow():
 
         # ACTIVE CAMPAIGN
         ac_contact_id = ac.createContact(data)
+        ac.addContactToList(ac_contact_id, "Gratis Session")
 
         ac_id = ac_contact_id if ac_contact_id else ""
 
@@ -313,7 +315,9 @@ def ac_lead():
 
     if data:
         ac = ActiveCampaign()
-        return ac.createContact(data)
+        contact_id = ac.createContact(data)
+
+        return ac.addContactToList(contact_id, "Gratis Session")
 
     return "Missing data. Couldn't create AC record."
 

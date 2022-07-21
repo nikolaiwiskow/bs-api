@@ -40,6 +40,9 @@ class ActiveCampaign():
         self.default_values = {
             "hs_lead_status": "OPEN"
         }
+        self.lists = {
+            "Gratis Session": "2"
+        }
 
 
 
@@ -172,4 +175,36 @@ class ActiveCampaign():
             return r_json["contacts"][0]
         
         pprint("AC Contat not found.")
+        return False
+
+
+
+
+
+    def addContactToList(self, contact_id: str, list_name: str) -> Union[str, bool]:
+        """
+        Add a contact to a list
+        @param contact_id <str>: AC Contact ID
+        @param list_name <str>: AC List ID
+
+        @return False
+        """
+        url = "%s/contactLists" % (self.base_url)
+
+        data = {
+            "contactList": {
+                "list": self.lists[list_name],
+                "contact": contact_id,
+                "status": "1" # 1: subscribed, 2: unsubscribed
+            }
+        }
+
+        r = requests.post(url, headers=self.headers, data=json.dumps(data))
+        r_json = r.json()
+
+        if r.ok and "contactList" in r_json and len(r_json["contacts"]) > 0:
+            pprint("AC List update successfull.")
+            return r_json["contacts"][0]["id"]
+        
+        pprint("AC List update failed.")
         return False
