@@ -19,3 +19,8 @@ class Utilities():
         
         return json.dumps(input)
 
+
+
+    def valueOrEmptyString(self, json_dict: dict, key_to_check: str) -> str:
+        return json_dict[key_to_check] if key_to_check in json_dict else ""
+

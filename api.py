@@ -12,6 +12,7 @@ from hubspot import Hubspot
 from airtable import Airtable
 from active_campaign import ActiveCampaign
 from slack import Slack
+from utilities import Utilities
 from config import BESTRONG_API_TOKEN
 
 app = flask.Flask(__name__)
@@ -42,7 +43,7 @@ def api_error(e):
 
 
 @app.route('/', methods=['GET'])
-@cross_origin(origins='https://airtable.com')
+@cross_origin()
 def home():
     authenticate(request)
     logging.info("hey")
@@ -63,63 +64,46 @@ def home():
 @app.route('/lead', methods=['POST'])
 def lead_flow():
     print("New Lead Request")
-    data = json.loads(request.data) if request.data else False
     authenticate(request)
+    data = json.loads(request.data) if request.data else False
 
     if data:
         at = Airtable()
         hs = Hubspot()
         ac = ActiveCampaign()
         slack = Slack()
+        utils = Utilities()
+
+        # SLACK MESSAGE
+        slack_message = "Neuer Lead!\n%s %s\n%s\n%s" % (utils.valueOrEmptyString(data, 'firstname'), 
+                                                        utils.valueOrEmptyString(data, 'lastname'), 
+                                                        utils.valueOrEmptyString(data, 'email'), 
+                                                        utils.valueOrEmptyString(data, 'lp_form_funnel'))
+        slack.sendMessage('fitness-leads', slack_message)
 
         data["hs_lead_status"] = "OPEN"
-        # AIRTABLE
-        at_record_id = at.createRecord('Leads', data)
 
         # HUBSPOT
         hs_contact_id = hs.createContact(data)
-
-
-        # SLACK MESSAGE
-        firstname = data["firstname"] if "firstname" in data else ""
-        lastname = data["lastname"] if "lastname" in data else ""
-        email = data["email"] if "email" in data else ""
-        funnel = data["lp_form___funnel"] if "lp_form___funnel" in data else ""
-        slack_message = "Neuer Lead!\n%s %s\n%s\n%s" % (firstname, lastname, email, funnel)
-        slack.sendMessage('fitness-leads', slack_message)
-
-
-        at_id = at_record_id if at_record_id else ""
         hs_id = hs_contact_id if hs_contact_id else ""
-
         data["hs_id"] = hs_id
-        data["at_id"] = at_id
 
         # ACTIVE CAMPAIGN
         ac_contact_id = ac.createContact(data)
         ac.addContactToList(ac_contact_id, "Gratis Session")
-
         ac_id = ac_contact_id if ac_contact_id else ""
+        data["ac_id"] = ac_id
+
+        # AIRTABLE
+        at_record_id = at.createRecord('Leads', data)
 
         # AIRTABLE UPDATE WITH HS & AC ID's
-        if at_record_id and (hs_contact_id or ac_contact_id):
-            at_updated_record = at.updateRecord('Leads', at_record_id, {
-                    "ac_id": ac_contact_id,
-                    "hs_id": hs_id
-                })
-
-            logging.info("Calls finished successfully.")
+        if at_record_id:
+            pprint("Calls finished successfully.")
             return "Success"
         
-        logging.error("Calls finished with Errors!")
-        logging.info("AirTable Response")
-        logging.info("Airtable Record Id: %s" & (at_record_id))
-        logging.info("Hubspot Response")
-        logging.info("Hubspot Contact Id: %s" % (hs_contact_id))
-        logging.info("ActiveCampaign Response")
-        logging.info("ActiveCampaign Contact Id: %s" % (ac_contact_id))
         slack.sendMessage('fitness-dev-notifications', 'Lead Calls finished with errors.')
-        abort(400, description="Failed API Call in execution chain")
+        abort(400, description="Failed to create Airtable Record")
     
     abort(400, description="Missing request data")
 
