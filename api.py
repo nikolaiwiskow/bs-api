@@ -15,7 +15,7 @@ from config import BESTRONG_API_TOKEN
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
-logging.basicConfig(filename='api_logs.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
+logging.basicConfig(filename='/var/log/apache2/bestrong_wsgi_api_logs.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
 
 
 
