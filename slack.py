@@ -2,7 +2,7 @@ import requests
 import pprint
 import json
 
-
+from config import CONFIG
 
 class Slack():
 
@@ -12,9 +12,9 @@ class Slack():
             "Accept": "application/json"
         }
         self.channels = {
-            "fitness-leads": "https://hooks.slack.com/services/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",
-            "benachrichtigungen": "https://hooks.slack.com/services/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",
-            "fitness-dev-notifications": "https://hooks.slack.com/services/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"
+            "fitness-leads": CONFIG["slack"]["fitness-leads"],
+            "benachrichtigungen": CONFIG["slack"]["benachrichtigungen"],
+            "fitness-dev-notifications": CONFIG["slack"]["fitness-dev-notifications"]
         }
 
 

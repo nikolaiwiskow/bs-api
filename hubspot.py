@@ -7,6 +7,7 @@ from pprint import pprint
 from typing import Union
 
 from utilities import Utilities
+from config import CONFIG
 
 #logging.basicConfig(filename='var/www/bestrong_api/bestrong_api.log', level=logging.DEBUG)
 
@@ -14,7 +15,7 @@ class Hubspot():
 
     def __init__(self):
         self.base_url = "https://api.hubapi.com/crm/v3"
-        self.api_token = "ef13d414-88b8-4adc-89e1-d6e4f019b62c"
+        self.api_token = CONFIG["hubspot"]["api_key"]
         self.headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json'

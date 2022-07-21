@@ -7,6 +7,7 @@ from pprint import pprint
 from typing import Union
 
 from utilities import Utilities
+from config import CONFIG
 
 #logging.basicConfig(filename='api.log', level=logging.DEBUG)
 
@@ -15,7 +16,7 @@ class Airtable():
     def __init__(self):
         self.project_id = "applnNCLOId0ZsBOv"
         self.base_url = "https://api.airtable.com/v0/%s/" % (self.project_id)
-        self.api_key = "keyXEGb8jeZPIM83r"
+        self.api_key = CONFIG["airtable"]["api_key"]
         self.headers = {
             "Authorization": "Bearer %s" % (self.api_key),
             "Content-Type": "application/json"

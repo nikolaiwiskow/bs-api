@@ -6,6 +6,7 @@ from pprint import pprint
 from typing import Union
 
 from utilities import Utilities
+from config import CONFIG
 
 
 
@@ -15,7 +16,7 @@ class ActiveCampaign():
 
     def __init__(self):
         self.base_url = "https://bestrong-fitness90613.api-us1.com/api/3"
-        self.api_key = "6fcc5bc1cb7c2741b7af0fcd24bcbccd765331a695ffdb2b3f8fd9c70d8d61d397e8693c"
+        self.api_key = CONFIG["activeCampaign"]["api_key"]
         self.headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
