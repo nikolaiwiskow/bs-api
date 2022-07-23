@@ -214,7 +214,9 @@ def update_erstberatungsslots():
         for id in setmore_staff_ids:
             sm.getSlotsForStaffNextXDays(id)
 
-    return "Success."
+        return "Success."
+    
+    return abort(400, description="Truncate Table incomplete.")
 
 
 
