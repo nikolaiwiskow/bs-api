@@ -85,8 +85,10 @@ class Airtable():
             for chunk in record_chunks:
                 self.createRecord(table_name, chunk)
 
+            return True
+
         elif isinstance(data, object):
-            self.createRecord(table_name, [self.__prepRecord(data, table_name)])
+            return self.createRecord(table_name, [self.__prepRecord(data, table_name)])
 
         return []
         

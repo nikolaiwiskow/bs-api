@@ -31,7 +31,6 @@ class Setmore():
 
         if r.ok and "response" in r_json and r_json["response"]:
             access_token = r_json["data"]["token"]["access_token"]
-            pprint(access_token)
             return access_token
 
         pprint("AccessToken not retrieved.")
@@ -111,8 +110,6 @@ class Setmore():
             for s in slots_of_day:
                 slots.append(s)
             
-
-        pprint(slots)
         Airtable().create("Erstberatung-Slots", slots)
 
         return slots
