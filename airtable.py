@@ -217,3 +217,29 @@ class Airtable():
             return self.pagination_results
 
         return []
+
+
+    def truncate(self, table_name: str) -> bool:
+        """
+        Truncate a whole Table in Airtable
+        @param table_name <str>: Table name
+
+        @return pass
+        """
+        records = self.getAllRecords(table_name)
+        record_ids = [record["id"] for record in records]
+        chunks = Utilities().chunkArray(record_ids, 10)
+
+        url = self.base_url + table_name
+
+        for chunk in chunks:
+            params = {
+                "records[]": chunk
+            }
+            r = requests.delete(url, params=params, headers=self.headers)
+
+            if not r.ok:
+                pprint(r.json())
+                return False
+
+        return True

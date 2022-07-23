@@ -1,5 +1,6 @@
 import dataclasses
 import json
+from os import truncate
 import flask
 import requests
 import logging
@@ -203,12 +204,15 @@ def sync_leadstatus():
 def update_erstberatungsslots():
     at = Airtable()
     sm = Setmore()
-    coaches = at.getAllRecords("Coaches")
+    truncate_successfull = at.truncate("Erstberatung-Slots")
 
-    setmore_staff_ids = [coach["fields"]["setmore_staff_id"] for coach in coaches]
+    if truncate_successfull:
+        coaches = at.getAllRecords("Coaches")
 
-    for id in setmore_staff_ids:
-        sm.getSlotsForStaffNextXDays(id)
+        setmore_staff_ids = [coach["fields"]["setmore_staff_id"] for coach in coaches]
+
+        for id in setmore_staff_ids:
+            sm.getSlotsForStaffNextXDays(id)
 
     return "Success."
 
