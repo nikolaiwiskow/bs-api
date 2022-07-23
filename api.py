@@ -11,6 +11,7 @@ from flask_cors import CORS, cross_origin
 from hubspot import Hubspot
 from airtable import Airtable
 from active_campaign import ActiveCampaign
+from setmore import Setmore
 from slack import Slack
 from utilities import Utilities
 from config import BESTRONG_API_TOKEN
@@ -18,7 +19,7 @@ from config import BESTRONG_API_TOKEN
 app = flask.Flask(__name__)
 CORS(app)
 app.config["DEBUG"] = True
-logging.basicConfig(filename='/var/log/apache2/bestrong_wsgi_api_logs.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
+#logging.basicConfig(filename='/var/log/apache2/bestrong_wsgi_api_logs.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
 
 
 
@@ -95,7 +96,7 @@ def lead_flow():
         data["ac_id"] = ac_id
 
         # AIRTABLE
-        at_record_id = at.createRecord('Leads', data)
+        at_record_id = at.create('Leads', data)
 
         # AIRTABLE UPDATE WITH HS & AC ID's
         if at_record_id:
@@ -198,6 +199,18 @@ def sync_leadstatus():
 
 
 
+@app.route('/resources/update_erstberatungsslots', methods=['GET'])
+def update_erstberatungsslots():
+    at = Airtable()
+    sm = Setmore()
+    coaches = at.getAllRecords("Coaches")
+
+    setmore_staff_ids = [coach["fields"]["setmore_staff_id"] for coach in coaches]
+
+    for id in setmore_staff_ids:
+        sm.getSlotsForStaffNextXDays(id)
+
+    return "Success."
 
 
 
@@ -269,7 +282,7 @@ def airtable_record():
         data = json.loads(request.data) if request.data else False
 
         if data and request.args.get('table'):
-            return at.createRecord(request.args.get('table'), data)
+            return at.create(request.args.get('table'), data)
 
         return "Missing data. Couldn't create Airtable record."
 
@@ -326,7 +339,7 @@ def airtable_appointment():
             if lead_id:
                 data['Leads'] = [lead_id]
             
-            return at.createRecord('Appointments', data)
+            return at.create('Appointments', data)
 
         return "Missing data. Couldn't create Airtable record."
 

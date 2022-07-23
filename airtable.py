@@ -33,19 +33,67 @@ class Airtable():
                         "funnel",
                         "campaign_last_click",
                         "messagebird_conversation_id"],
-            "Appointments": ["setmore_id", "setmore_service_id", "setmore_service_name", "Coach", "appointment_time", "client_name", "client_email", "Leads", "meeting_url"]
+            "Appointments": ["setmore_id", "setmore_service_id", "setmore_service_name", "Coach", "appointment_time", "client_name", "client_email", "Leads", "meeting_url"],
+            "Erstberatung-Slots": ["setmore_staff_id", "timeslot", "Coach", "timeslot_length"]
         }
         self.field_map = {
             "form_complete_dataset": "form_data",
         }
-        self.dont_json_stringify = ["Coach", "Leads"]
+        self.dont_json_stringify = ["Coach", "Leads", "timeslot_length"]
+        self.pagination_results = []
         
 
 
 
 
 
-    def createRecord(self, table_name: str, data: json) -> Union[str, bool]:
+    def __prepRecord(self, record_data: object, table_name: str) -> object:
+        record = {
+            "fields": {}
+        }
+        utils = Utilities()
+
+        pprint(record_data)
+
+        for attribute,value in record_data.items():
+            if attribute in self.allowed_fields[table_name]:
+                if attribute in self.field_map:
+                    # Apply custom column names for Airtable
+                    record["fields"][self.field_map[attribute]] = utils.fixDataType(record_data[attribute])
+
+                elif attribute in self.dont_json_stringify:
+                    # Pass through data directly for certain columns
+                    record["fields"][attribute] = record_data[attribute]
+                
+                else:
+                    # We'll json_dumps the rest
+                    record["fields"][attribute] = utils.fixDataType(record_data[attribute])    
+
+        return record    
+
+
+
+
+    def create(self, table_name: str, data: Union[list, object]) -> Union[str, bool]:
+        if isinstance(data, list):
+            records = []
+            for item in data:
+                records.append(self.__prepRecord(item, table_name))
+            
+            record_chunks = Utilities().chunkArray(records, 10)
+
+            for chunk in record_chunks:
+                self.createRecord(table_name, chunk)
+
+        elif isinstance(data, object):
+            self.createRecord(table_name, [self.__prepRecord(data, table_name)])
+
+        return []
+        
+
+
+
+    def createRecord(self, table_name: str, data: Union[list, object]) -> Union[str, bool]:
         """
         Create Airtable Record
         @param data <json>: Key-Value map of data to create record from
@@ -53,25 +101,9 @@ class Airtable():
 
         @return record_id <str> if successfull / False it attempt failed
         """
-        record = {}
-        utils = Utilities()
-
-        for attribute,value in data.items():
-            if attribute in self.allowed_fields[table_name]:
-                if attribute in self.field_map:
-                    # Apply custom column names for Airtable
-                    record[self.field_map[attribute]] = utils.fixDataType(data[attribute])
-
-                elif attribute in self.dont_json_stringify:
-                    # Pass through data directly for certain columns
-                    record[attribute] = data[attribute]
-                
-                else:
-                    # We'll json_dumps the rest
-                    record[attribute] = utils.fixDataType(data[attribute])
-
         at_data = {
-            "records": [{"fields": record}]
+            "records": data,
+            "typecast": True
         }
 
         r = requests.post(self.base_url + table_name, data=json.dumps(at_data), headers=self.headers)
@@ -141,3 +173,47 @@ class Airtable():
         
         pprint("No records found.")
         return False
+
+
+
+    def getAllRecords(self, table_name: str, fields=False, offset=False) -> list:
+        """
+        Return a list of all records in a table
+        @param table_name <str>: Table Name
+        @param fields <list>.<str>: List of fields to return
+
+        @return <list>.<obj> list of Airtable Record Objects
+        {   'createdTime': '2022-07-12T12:53:54.000Z',
+            'fields':   {'Vorname': 'Linnea',
+                        'record_id': 'recqK13qjTs50HLUh',
+                        'setmore_staff_id': 'r3f251651666455574'},
+            'id': 'recqK13qjTs50HLUh'
+        }
+        """
+
+        url = "%s%s" % (self.base_url, table_name)
+
+        if fields:
+            query_params = ""
+            for field in fields:
+                query_params += "&fields=%s" % (field)
+            
+            url += query_params
+
+        if offset:
+            url += "&offset=%s" % (offset)
+
+        url = url.replace("&", "?", 1)
+
+        r = requests.get(url, headers=self.headers)
+        r_json = r.json()
+
+        if r.ok and "records" in r_json:
+            self.pagination_results += r_json["records"]
+
+            if "offset" in r_json:
+                self.getAllRecords(table_name, fields=fields, offset=r_json["offset"])
+
+            return self.pagination_results
+
+        return []

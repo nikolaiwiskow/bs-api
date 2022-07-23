@@ -24,3 +24,11 @@ class Utilities():
     def valueOrEmptyString(self, json_dict: dict, key_to_check: str) -> str:
         return json_dict[key_to_check] if key_to_check in json_dict else ""
 
+
+
+
+
+    def chunkArray(self, lst: list, n: int) -> list:
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
