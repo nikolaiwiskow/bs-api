@@ -211,12 +211,17 @@ def update_erstberatungsslots():
 
         setmore_staff_ids = [coach["fields"]["setmore_staff_id"] for coach in coaches]
 
-        for id in setmore_staff_ids:
+        for id in Utilities().dedupArray(setmore_staff_ids):
+            pprint("Pulling slots for staff id %s" % (id))
             sm.getSlotsForStaffNextXDays(id)
 
         return "Success."
     
     return abort(400, description="Truncate Table incomplete.")
+
+
+
+
 
 
 

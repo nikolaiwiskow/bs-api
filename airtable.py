@@ -53,8 +53,6 @@ class Airtable():
         }
         utils = Utilities()
 
-        pprint(record_data)
-
         for attribute,value in record_data.items():
             if attribute in self.allowed_fields[table_name]:
                 if attribute in self.field_map:

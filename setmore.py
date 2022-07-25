@@ -53,8 +53,7 @@ class Setmore():
         date_for_call = date or datetime.date.today()
         date_api_format = date_for_call.strftime('%d/%m/%Y')
 
-        at = Airtable()
-        staff_airtable_record_id = at.searchRecord('Coaches', 'setmore_staff_id', staff_id)
+        staff_airtable_record_id = Airtable().searchRecord('Coaches', 'setmore_staff_id', staff_id)
 
         timeslot_length = 60
         
@@ -72,18 +71,18 @@ class Setmore():
         r_json = r.json()
     
         if r.ok and "response" in r_json and r_json["response"]:
-            slots = []
+            staff_slots = []
 
             for slot in r_json["data"]["slots"]:
                 slot_datetime = "%sT%s:00.000Z" % (date_for_call.strftime('%Y-%m-%d'), slot.replace(".", ":"))
-                slots.append({
+                staff_slots.append({
                     "setmore_staff_id":  staff_id,
                     "timeslot": slot_datetime ,
                     "Coach": [staff_airtable_record_id],
                     "timeslot_length": timeslot_length
                 })
 
-            return slots
+            return staff_slots
         
         pprint("Failed to retrieve slots for %s" % (date_api_format))
         return False
