@@ -153,8 +153,27 @@ class Airtable():
 
 
 
+    def getRecord(self, table_name: str, id: str) -> object:
+        """
+        Retrieve a record from Airtable
+        @param table_name <str>: Airtable Table name
+        @param id <str>: Record Id
 
-    def searchRecord(self, table_name: str, search_field: str, search_value: str) -> Union[str, bool]:
+        @return r_json <Object>: Airtable Response as object
+        """
+        url = "%s/%s" % (self.base_url + table_name, id)
+
+        r = requests.get(url, headers=self.headers)
+        r_json = r.json()
+
+        if r.ok and "id" in r_json:
+            return r_json
+
+        return False
+
+
+
+    def searchRecord(self, table_name: str, search_field: str, search_value: str, return_full_record=False) -> Union[str, bool]:
         """
         Search for Airtable Record by field & value
         @param table_name <str>: Airtable Table name
@@ -163,12 +182,17 @@ class Airtable():
 
         @return record_id <str> / False if failed attempt
         """
-        url = "%s?fields[]=%s&maxRecords=1&filterByFormula=SEARCH(LOWER('%s'), %s)" % (self.base_url + table_name, search_field, search_value, search_field)
+        #url = "%s?fields[]=%s&maxRecords=1&filterByFormula=SEARCH(LOWER('%s'), %s)" % (self.base_url + table_name, search_field, search_value, search_field)
+        url = "%s?maxRecords=1&filterByFormula=SEARCH(LOWER('%s'), %s)" % (self.base_url + table_name, search_value, search_field)
 
         r = requests.get(url, headers=self.headers)
         r_json = r.json()
         
         if r.ok and "records" in r_json and len(r_json["records"]) > 0:
+
+            if return_full_record:
+                return r_json["records"][0]
+            else:
                 return r_json["records"][0]["id"]
         
         pprint("No records found.")

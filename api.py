@@ -223,6 +223,26 @@ def update_erstberatungsslots():
 
 
 
+@app.route('/contract_signed', methods=["POST"])
+def contract_signed():
+    authenticate(request)
+
+    data = json.loads(request.data) if request.data else False
+
+    if data and "client_email" in data:
+        at = Airtable()
+
+        at_lead = at.searchRecord('Leads', "email", data["client_email"], return_full_record=True)
+        at_coach = at.getRecord('Coaches', at_lead["fields"]["Coach (from Appointments)"][0])
+
+        at.updateRecord('Leads', at_lead["id"], {
+            "hs_lead_status": "WON",
+            "contract_status": data["contract_status"]
+        })
+
+        return json.dumps(at_coach)
+
+    return abort(400, description="Missing data. Make sure 'client_email' is in Body.")
 
 
 
