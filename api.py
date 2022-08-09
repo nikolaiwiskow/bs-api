@@ -241,7 +241,7 @@ def contract_signed():
         })
 
         return json.dumps({
-            "coach_email": at_coach["fields"]["email"],
+            "coach_email": at_coach["fields"]["Email"],
             "ptd_package": at_lead["fields"]["ptd_package"],
             "gender": at_lead["fields"]["gender"]
         })
