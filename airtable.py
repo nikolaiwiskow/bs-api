@@ -32,12 +32,14 @@ class Airtable():
                         "hs_lead_status",
                         "funnel",
                         "campaign_last_click",
-                        "messagebird_conversation_id"],
+                        "messagebird_conversation_id",
+                        "Wichtigkeit-Betreuung-vor-Ort"],
             "Appointments": ["setmore_id", "setmore_service_id", "setmore_service_name", "Coach", "appointment_time", "client_name", "client_email", "Leads", "meeting_url"],
             "Erstberatung-Slots": ["setmore_staff_id", "timeslot", "Coach", "timeslot_length"]
         }
         self.field_map = {
             "form_complete_dataset": "form_data",
+            "Wichtigkeit-Betreuung-vor-Ort": "betreuung_vor_ort"
         }
         self.dont_json_stringify = ["Coach", "Leads", "timeslot_length"]
         self.pagination_results = []
