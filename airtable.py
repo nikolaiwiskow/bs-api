@@ -33,7 +33,9 @@ class Airtable():
                         "funnel",
                         "campaign_last_click",
                         "messagebird_conversation_id",
-                        "Wichtigkeit-Betreuung-vor-Ort"],
+                        "Wichtigkeit-Betreuung-vor-Ort",
+                        "betreuung_vor_ort",
+                        "first_touch_page"],
             "Appointments": ["setmore_id", "setmore_service_id", "setmore_service_name", "Coach", "appointment_time", "client_name", "client_email", "Leads", "meeting_url"],
             "Erstberatung-Slots": ["setmore_staff_id", "timeslot", "Coach", "timeslot_length"]
         }
