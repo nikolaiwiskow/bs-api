@@ -202,7 +202,7 @@ class ActiveCampaign():
         r = requests.post(url, headers=self.headers, data=json.dumps(data))
         r_json = r.json()
 
-        if r.ok and "contactList" in r_json and len(r_json["contacts"]) > 0:
+        if r.ok and "contactList" in r_json and "contacts" in r_json and len(r_json["contacts"]) > 0:
             pprint("AC List update successfull.")
             return r_json["contacts"][0]["id"]
         

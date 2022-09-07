@@ -31,7 +31,30 @@ class MessageBird():
         Reply to an incoming message via its conversation id
         @param conversation_id <str>: Messagebird Conversation ID
         @param message_type <str>: 'text' or 'hsm' for template
-        @param text <str>: Text to send as message
+        @param payload <obj>: 
+        
+        {
+            "type": "hsm",
+            "content": {
+                "hsm": {
+                    "namespace": "da870d61_52cc_46ad_8627_abc2a5f47386",
+                    "templateName": "erstberatung_no_show",
+                    "language": {
+                        "code": "de"
+                    },
+                    "params": [{"default": "Niko"}, {"default": "Wadim"}]
+                }
+            }
+        }
+
+        OR
+
+        {
+            "type": "text",
+            "content": {
+                "text": "This is the message you want to send."
+            }
+        }
 
         @return r_json <obj>: Messagebird response object
         """
@@ -41,8 +64,7 @@ class MessageBird():
         r_json = r.json()
         pprint(r_json)
 
-        if r.ok and "status" in r_json:
-            
+        if r.ok and "status" in r_json:         
             return r_json
 
         return "Failure"
