@@ -14,6 +14,7 @@ from airtable import Airtable
 from active_campaign import ActiveCampaign
 from setmore import Setmore
 from slack import Slack
+from messagebird import MessageBird
 from utilities import Utilities
 from config import BESTRONG_API_TOKEN
 
@@ -285,6 +286,24 @@ def hs_contact():
 
 
 
+
+
+"""
+MESSAGEBIRD
+"""
+@app.route('/resources/messagebird_reply', methods=['POST'])
+def messagebird_reply():
+    authenticate(request)
+
+    data = json.loads(request.data) if request.data else False
+
+    if data and "conversationId" in data and "message_text" in data and "payload" in data:
+        mb = MessageBird()
+        response = mb.replyToConversation(data["conversationId"], data["message_text"], data["payload"])
+        return response
+
+    else:
+        abort(400, description="Missing payload. Make sure to include conversationId and message_text in request body.")
 
 
 
