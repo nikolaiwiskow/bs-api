@@ -1,7 +1,8 @@
 import pprint
 import json
+import csv
 
-
+from typing import Union
 
 class Utilities():
     
@@ -59,3 +60,21 @@ class Utilities():
         @return <list> deduplicated list
         """
         return list(dict.fromkeys(lst))
+
+
+
+
+    def lookupGoogleAdsGeotarget(self, target_id: str) -> str:
+        """
+        Lookup geotarget from csv file
+        @param target_id <str>: The integer ID of the geotarget as a string
+
+        @return <str>: Name of location or false
+        """
+        data = csv.DictReader(open("geotargets.csv"))
+
+        for row in data:
+            if row["Criteria ID"] == str(target_id):
+                return row["Canonical Name"]
+
+        return "User location not found."

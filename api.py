@@ -97,6 +97,11 @@ def lead_flow():
         ac_id = ac_contact_id if ac_contact_id else ""
         data["ac_id"] = ac_id
 
+        # LOOKUP USER LOCATION
+        if "google_location_id" in data:
+            user_location = utils.lookupGoogleAdsGeotarget(data["google_location_id"])
+            data["user_location"] = user_location
+
         # AIRTABLE
         at_record_id = at.create('Leads', data)
 
