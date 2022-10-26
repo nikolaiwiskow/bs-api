@@ -100,7 +100,10 @@ def lead_flow():
         # LOOKUP USER LOCATION
         if "google_location_id" in data:
             user_location = utils.lookupGoogleAdsGeotarget(data["google_location_id"])
-            data["lp_form___complete_dataset"]["user_location"] = user_location
+            data["form_complete_dataset"]["user_location"] = user_location
+
+        # Remove redundancy
+        data["form_complete_dataset"].pop("lp_form___complete_dataset", None)
 
         # AIRTABLE
         at_record_id = at.create('Leads', data)
