@@ -87,7 +87,7 @@ def lead_flow():
         data["hs_lead_status"] = "OPEN"
 
         # HUBSPOT
-        """hs_contact_id = hs.createContact(data)
+        hs_contact_id = hs.createContact(data)
         hs_id = hs_contact_id if hs_contact_id else ""
         data["hs_id"] = hs_id
 
@@ -95,25 +95,27 @@ def lead_flow():
         ac_contact_id = ac.createContact(data)
         ac.addContactToList(ac_contact_id, "Gratis Session")
         ac_id = ac_contact_id if ac_contact_id else ""
-        data["ac_id"] = ac_id"""
+        data["ac_id"] = ac_id
+
+        form_complete_dataset = json.loads(data["form_complete_dataset"])
 
         # LOOKUP USER LOCATION
         if "google_location_id" in data:
             user_location = utils.lookupGoogleAdsGeotarget(data["google_location_id"])
-            data["form_complete_dataset"]["user_location"] = user_location
+            form_complete_dataset["user_location"] = user_location
 
         # Remove redundancy
-        data["form_complete_dataset"].pop("lp_form___complete_dataset", None)
-        pprint(data)
+        form_complete_dataset.pop("lp_form___complete_dataset", None)
+        data["form_complete_dataset"] = form_complete_dataset
 
         # AIRTABLE
-        """at_record_id = at.create('Leads', data)
+        at_record_id = at.create('Leads', data)
 
         # AIRTABLE UPDATE WITH HS & AC ID's
         if at_record_id:
             pprint("Calls finished successfully.")
             return "Success"
-        """
+        
         slack.sendMessage('fitness-dev-notifications', 'Lead Calls finished with errors.')
         abort(400, description="Failed to create Airtable Record")
     

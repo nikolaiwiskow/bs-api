@@ -71,7 +71,7 @@ class Utilities():
 
         @return <str>: Name of location or false
         """
-        data = csv.DictReader(open("geotargets.csv"))
+        data = csv.DictReader(open("/var/www/bestrong_api/geotargets.csv", encoding="utf8"))
 
         for row in data:
             if row["Criteria ID"] == str(target_id):
