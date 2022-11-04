@@ -86,6 +86,18 @@ def lead_flow():
 
         data["hs_lead_status"] = "OPEN"
 
+        form_complete_dataset = json.loads(data["form_complete_dataset"])
+
+        # Remove redundant keys
+        form_complete_dataset.pop("lp_form___complete_dataset", None)
+
+        # LOOKUP USER LOCATION
+        if "google_location_id" in data:
+            user_location = utils.lookupGoogleAdsGeotarget(data["google_location_id"])
+            form_complete_dataset["user_location"] = user_location
+
+        data["form_complete_dataset"] = form_complete_dataset
+
         # HUBSPOT
         hs_contact_id = hs.createContact(data)
         hs_id = hs_contact_id if hs_contact_id else ""
@@ -96,17 +108,6 @@ def lead_flow():
         ac.addContactToList(ac_contact_id, "Gratis Session")
         ac_id = ac_contact_id if ac_contact_id else ""
         data["ac_id"] = ac_id
-
-        form_complete_dataset = json.loads(data["form_complete_dataset"])
-
-        # LOOKUP USER LOCATION
-        if "google_location_id" in data:
-            user_location = utils.lookupGoogleAdsGeotarget(data["google_location_id"])
-            form_complete_dataset["user_location"] = user_location
-
-        # Remove redundancy
-        form_complete_dataset.pop("lp_form___complete_dataset", None)
-        data["form_complete_dataset"] = form_complete_dataset
 
         # AIRTABLE
         at_record_id = at.create('Leads', data)
