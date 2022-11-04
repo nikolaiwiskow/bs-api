@@ -1,6 +1,7 @@
 import pprint
 import json
 import csv
+import os
 
 from typing import Union
 
@@ -71,7 +72,9 @@ class Utilities():
 
         @return <str>: Name of location or false
         """
-        data = csv.DictReader(open("/var/www/bestrong_api/geotargets.csv", encoding="utf8"))
+        this_folder = os.path.dirname(os.path.abspath(__file__))
+        geotargets_csv_path = os.path.join(this_folder, 'geotargets.csv')
+        data = csv.DictReader(open(geotargets_csv_path, encoding="utf8"))
 
         for row in data:
             if row["Criteria ID"] == str(target_id):
