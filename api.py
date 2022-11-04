@@ -260,7 +260,8 @@ def contract_signed():
         return json.dumps({
             "coach_email": at_coach["fields"]["Email"],
             "ptd_package": at_lead["fields"]["ptd_package"],
-            "gender": at_lead["fields"]["gender"]
+            "gender": at_lead["fields"]["gender"],
+            "coaching_dauer": at_lead["fields"]["coaching_dauer"]
         })
 
     return abort(400, description="Missing data. Make sure 'client_email' is in Body.")
