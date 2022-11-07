@@ -26,9 +26,12 @@ class ActiveCampaign():
         self.custom_fields = {
             "hs_lead_status": "1",
             "hs_id": "2",
+            "erstberatung_datum": "3",
             "form_complete_dataset": "4",
+            "erstberatung_timestamp": "5",
             "Geschlecht": "6",
             "Ziel": "7",
+            "erstberatung_meeting_url": "8",
             "whatsapp-opt-in": "9",
             "campaign_last_click": "10",
             "at_id": "11"
@@ -42,6 +45,9 @@ class ActiveCampaign():
         }
         self.lists = {
             "Gratis Session": "2"
+        }
+        self.tags = {
+            "consultation-booked": "4"
         }
 
 
@@ -84,6 +90,7 @@ class ActiveCampaign():
                 else:
                     ac_data["contact"][attr] = data[attr]
             
+            # Custom fields
             else:
                 if attr in self.custom_fields:
                     ac_data["contact"]["fieldValues"].append({
@@ -207,4 +214,40 @@ class ActiveCampaign():
             return r_json["contacts"][0]["id"]
         
         pprint("AC List update failed.")
+        return False
+
+
+
+    def addTagToContact(self, contact_id: str, tag: str):
+        """
+        Add a tag to a AC contact
+        @param contact_id <str>: AC Contact ID
+        @param tag <str>: name of tag
+
+        @return XOXO
+        """
+        url = "%s/contactTags" % (self.base_url)
+
+        tag_id = self.tags[tag] if tag in self.tags else False
+
+        if tag_id:
+            data = {
+                "contactTag": {
+                    "contact": contact_id,
+                    "tag": tag_id
+                }
+            }
+
+            r = requests.post(url, headers=self.headers, data=json.dumps(data))
+            r_json = r.json()
+
+            if r.ok and "contactTag" in r_json:
+                pprint("AC Contact Tag update successfull.")
+                # return the contact Id
+                return r_json
+            else:
+                pprint("AC Contact Tag update request failed.")
+                return r_json
+            
+        pprint("Tag not found. Is it mapped?")
         return False

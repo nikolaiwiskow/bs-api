@@ -6,6 +6,7 @@ import requests
 import logging
 
 from pprint import pprint
+from datetime import datetime
 from flask import request, jsonify, abort
 from flask_cors import CORS, cross_origin
 
@@ -398,22 +399,41 @@ def airtable_appointment():
     elif request.method == 'POST':
         data = json.loads(request.data) if request.data else False
 
-        if data:
+        if data and "setmore_service_name" in data and data["setmore_service_name"] == "Erstberatung":
+            ac = ActiveCampaign()
+            slack = Slack()
+            utils = Utilities()
+
             setmore_staff_id = data["setmore_staff_id"] if "setmore_staff_id" in data else ""
             client_email = data['client_email'] if "client_email" in data else ""
 
             coach_id = at.searchRecord('Coaches', 'setmore_staff_id', setmore_staff_id)
-            lead_id = at.searchRecord('Leads', 'email', client_email)
+            lead = at.searchRecord('Leads', 'email', client_email, return_full_record=True)
 
             if coach_id:
                 data["Coach"] = [coach_id]
 
-            if lead_id:
-                data['Leads'] = [lead_id]
+            if lead:
+                data['Leads'] = [lead["id"]]
+
+                ac.updateContact(lead["fields"]["ac_id"], 
+                            {"hs_lead_status": "CONSULTATION_SET", 
+                            "erstberatung_datum": datetime.fromisoformat(data["appointment_time"]).date().isoformat(),
+                            "erstberatung_timestamp": datetime.fromisoformat(data["appointment_time"]).isoformat(),
+                            "erstberatung_meeting_url": data["meeting_url"]}, 
+                            use_standard_values=False)
+
+                ac.addTagToContact(lead["fields"]["ac_id"], "consultation-booked")
+
+                slack_message = "Neues Beratungsgespräch gebucht!\n%s\n%s\n%s" % (utils.valueOrEmptyString(data, 'client_name'),
+                                                        utils.valueOrEmptyString(data, 'appointment_time'), 
+                                                        utils.valueOrEmptyString(data, 'meeting_url'))
+                
+                s = slack.sendMessage('benachrichtigungen', slack_message)
             
             return at.create('Appointments', data)
 
-        return "Missing data. Couldn't create Airtable record."
+        return "Missing data or wrong setmore_service_name. Couldn't create Airtable record."
 
 
 
