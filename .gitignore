@@ -3,3 +3,4 @@ __pycache__/
 venv/
 config.py
 requirements.txt
+venv-3.9/

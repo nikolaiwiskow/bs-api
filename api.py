@@ -418,8 +418,8 @@ def airtable_appointment():
 
                 ac.updateContact(lead["fields"]["ac_id"], 
                             {"hs_lead_status": "CONSULTATION_SET", 
-                            "erstberatung_datum": datetime.fromisoformat(data["appointment_time"]).date().isoformat(),
-                            "erstberatung_timestamp": datetime.fromisoformat(data["appointment_time"]).isoformat(),
+                            "erstberatung_datum": data["appointment_time"],
+                            "erstberatung_timestamp": data["appointment_time"],
                             "erstberatung_meeting_url": data["meeting_url"]}, 
                             use_standard_values=False)
 
