@@ -340,10 +340,11 @@ def airtable_record():
 
     if request.method == 'GET':
         if request.args.get('search_field') and request.args.get('search_value') and request.args.get('table'):
-            record_id =  at.searchRecord(request.args.get('table'), request.args.get('search_field'), request.args.get('search_value'))
+            return_full_record = request.args.get('return_full_record')
+            record =  at.searchRecord(request.args.get('table'), request.args.get('search_field'), request.args.get('search_value'), return_full_record=return_full_record)
 
-            if record_id:
-                return record_id
+            if record:
+                return record
             else:
                 return "No record found."
 
