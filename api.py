@@ -249,7 +249,7 @@ def contract_signed():
         at_lead = at.searchRecord('Leads', "email", data["client_email"], return_full_record=True)
 
         # Select Coach. If ptd_coach is set, it will trump the person who held the Erstberatung
-        if len(at_lead['fields']['ptd_coach']) > 0:
+        if 'ptd_coach' in at_lead['fields'] and len(at_lead['fields']['ptd_coach']) > 0:
             at_coach = at.getRecord('Coaches', at_lead['fields']['ptd_coach'][0])
         else:
             at_coach = at.getRecord('Coaches', at_lead["fields"]["Coach (from Appointments)"][0])
