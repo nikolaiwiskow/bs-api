@@ -400,7 +400,7 @@ def airtable_appointment():
     elif request.method == 'POST':
         data = json.loads(request.data) if request.data else False
 
-        if data and "setmore_service_name" in data and data["setmore_service_name"] == "Erstberatung":
+        if data and "setmore_service_name" in data:
             ac = ActiveCampaign()
             slack = Slack()
             utils = Utilities()
@@ -409,7 +409,7 @@ def airtable_appointment():
             client_email = data['client_email'] if "client_email" in data else ""
 
             coach_id = at.searchRecord('Coaches', 'setmore_staff_id', setmore_staff_id)
-            lead = at.searchRecord('Leads', 'email', client_email, return_full_record=True)
+            lead = at.searchRecord('Leads', 'email', client_email, return_full_record=True)            
 
             if coach_id:
                 data["Coach"] = [coach_id]
@@ -417,21 +417,30 @@ def airtable_appointment():
             if lead:
                 data['Leads'] = [lead["id"]]
 
-                ac.updateContact(lead["fields"]["ac_id"], 
-                            {"hs_lead_status": "CONSULTATION_SET", 
-                            "erstberatung_datum": data["appointment_time"],
-                            "erstberatung_timestamp": data["appointment_time"],
-                            "erstberatung_meeting_url": data["meeting_url"]}, 
-                            use_standard_values=False)
+            # Update AC & AT
+            if lead and "ac_id" in lead["fields"]:
+                if data["setmore_service_name"] == "Erstberatung":
+                    ac.updateContact(lead["fields"]["ac_id"], 
+                                {"hs_lead_status": "CONSULTATION_SET", 
+                                "erstberatung_datum": data["appointment_time"],
+                                "erstberatung_timestamp": data["appointment_time"],
+                                "erstberatung_meeting_url": data["meeting_url"]}, 
+                                use_standard_values=False)
 
-                ac.addTagToContact(lead["fields"]["ac_id"], "consultation-booked")
+                    ac.addTagToContact(lead["fields"]["ac_id"], "consultation-booked")
+                    at.updateRecord('Leads', lead['id'], {"hs_lead_status": "CONSULTATION_SET"})
 
-                slack_message = "Neues Beratungsgespräch gebucht!\n%s\n%s\n%s" % (utils.valueOrEmptyString(data, 'client_name'),
-                                                        utils.valueOrEmptyString(data, 'appointment_time'), 
-                                                        utils.valueOrEmptyString(data, 'meeting_url'))
-                
-                s = slack.sendMessage('benachrichtigungen', slack_message)
+                elif data['setmore_service_name'] == 'Erstgespräch':
+                    ac.updateContact(lead['fields']['ac_id'], {"hs_lead_status": "QUALI_CALL_SET"}, use_standard_values=False)
+                    at.updateRecord('Leads', lead['id'], {"hs_lead_status": "QUALI_CALL_SET"})
+
             
+            slack_message = "%s gebucht!\n%s\n%s\n%s" % (data["setmore_service_name"],
+                                                    utils.valueOrEmptyString(data, 'client_name'),
+                                                    utils.valueOrEmptyString(data, 'appointment_time'), 
+                                                    utils.valueOrEmptyString(data, 'meeting_url'))
+            
+            s = slack.sendMessage('benachrichtigungen', slack_message)
             return at.create('Appointments', data)
 
         return "Missing data or wrong setmore_service_name. Couldn't create Airtable record."
